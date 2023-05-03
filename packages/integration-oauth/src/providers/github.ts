@@ -62,14 +62,6 @@ export const github = <_Auth extends Auth>(
 		};
 	};
 
-	const getProviderUser = async (accessToken: string) => {
-		const request = new Request("https://api.github.com/user", {
-			headers: authorizationHeaders("bearer", accessToken)
-		});
-		const githubUser = await handleRequest<GithubUser>(request);
-		return githubUser;
-	};
-
 	return {
 		getAuthorizationUrl: async () => {
 			const state = generateState();
@@ -82,7 +74,7 @@ export const github = <_Auth extends Auth>(
 		},
 		validateCallback: async (code: string) => {
 			const tokens = await getTokens(code);
-			const providerUser = await getProviderUser(tokens.accessToken);
+			const providerUser = await getProvider<GithubUser>("https://api.github.com/user", "bearer", tokens.accessToken);
 			const providerUserId = providerUser.id.toString();
 			const providerAuth = await connectAuth(auth, PROVIDER_ID, providerUserId);
 			return {
@@ -92,6 +84,17 @@ export const github = <_Auth extends Auth>(
 			};
 		}
 	} as const satisfies OAuthProvider<_Auth>;
+};
+
+export const getProvider = async <T extends {}>(
+	req_url: string,
+	headers_type: 'bearer' | 'basic',
+	accessToken: string
+) => {
+	const request = new Request(req_url, {
+		headers: authorizationHeaders(headers_type, accessToken)
+	});
+	return await handleRequest<T>(request);
 };
 
 export type GithubUser = {
