@@ -88,11 +88,11 @@ export const github = <_Auth extends Auth>(
 
 export const getProvider = async <T extends {}>(
 	req_url: string,
-	headers_type: 'bearer' | 'basic',
+	type: 'bearer' | 'basic',
 	accessToken: string
 ) => {
 	const request = new Request(req_url, {
-		headers: authorizationHeaders(headers_type, accessToken)
+		headers: authorizationHeaders(type, accessToken)
 	});
 	return await handleRequest<T>(request);
 };
